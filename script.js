@@ -1,5 +1,12 @@
 // Проверка поддержки API
 if (window.DeviceOrientationEvent) {
+    console.log("API поддерживается");
+} else {
+    alert("DeviceOrientation не поддерживается вашим устройством");
+    return;
+}
+
+if (window.DeviceOrientationEvent) {
     console.log("DeviceOrientation поддерживается");
 
     // Запрос разрешения (на iOS 13+ требуется явное разрешение)
