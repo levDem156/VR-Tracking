@@ -31,6 +31,8 @@ if (window.DeviceOrientationEvent) {
 // Функция для начала отслеживания ориентации
 function startListening() {
     window.addEventListener('deviceorientation', (event) => {
+        console.log("Событие работает", event);
+
         // Alpha: поворот вокруг оси Z (0–360°, направление компаса)
         const alpha = event.alpha;
         // Beta: наклон по оси X (-180–180°, вперед-назад)
