@@ -1,65 +1,46 @@
-const btn = document.getElementById('request-permission');
+// Проверка поддержки API
+if (window.DeviceOrientationEvent) {
+    console.log("DeviceOrientation поддерживается");
 
-let cube, scene, camera, renderer;
-
-init3D();
-
-// Функция запуска 3D-сцены
-function init3D() {
-  scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.z = 3;
-
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
-
-  const geometry = new THREE.BoxGeometry();
-  const material = new THREE.MeshStandardMaterial({ color: 0x00bcd4 });
-  cube = new THREE.Mesh(geometry, material);
-  scene.add(cube);
-
-  const light = new THREE.PointLight(0xffffff, 1);
-  light.position.set(5, 5, 5);
-  scene.add(light);
-
-  animate();
+    // Запрос разрешения (на iOS 13+ требуется явное разрешение)
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+            .then(permissionState => {
+                if (permissionState === 'granted') {
+                    startListening();
+                } else {
+                    console.log("Доступ к датчикам отклонён");
+                }
+            })
+            .catch(console.error);
+    } else {
+        // На устройствах, где разрешение не требуется (например, Android)
+        startListening();
+    }
+} else {
+    console.log("DeviceOrientation не поддерживается вашим устройством");
 }
 
-function animate() {
-  requestAnimationFrame(animate);
-  renderer.render(scene, camera);
+// Функция для начала отслеживания ориентации
+function startListening() {
+    window.addEventListener('deviceorientation', (event) => {
+        // Alpha: поворот вокруг оси Z (0–360°, направление компаса)
+        const alpha = event.alpha;
+        // Beta: наклон по оси X (-180–180°, вперед-назад)
+        const beta = event.beta;
+        // Gamma: наклон по оси Y (-90–90°, влево-вправо)
+        const gamma = event.gamma;
+
+        // Вывод данных в консоль
+        console.log(`Alpha (Z): ${alpha.toFixed(2)}°`);
+        console.log(`Beta (X): ${beta.toFixed(2)}°`);
+        console.log(`Gamma (Y): ${gamma.toFixed(2)}°`);
+
+        // Пример использования: обновление текста на странице
+        document.getElementById('orientation')?.innerHTML = `
+            Z (Alpha): ${alpha.toFixed(2)}°<br>
+            X (Beta): ${beta.toFixed(2)}°<br>
+            Y (Gamma): ${gamma.toFixed(2)}°
+        `;
+    });
 }
-
-// Функция обновления куба при повороте телефона
-function handleOrientation(event) {
-  const alpha = THREE.MathUtils.degToRad(event.alpha || 0); // вокруг Z
-  const beta = THREE.MathUtils.degToRad(event.beta || 0);   // вокруг X
-  const gamma = THREE.MathUtils.degToRad(event.gamma || 0); // вокруг Y
-
-  // Обновляем вращение куба
-  cube.rotation.x = beta;
-  cube.rotation.y = gamma;
-  cube.rotation.z = alpha;
-}
-
-// Обработка нажатия на кнопку разрешения
-btn.addEventListener('click', () => {
-  if (typeof DeviceOrientationEvent?.requestPermission === 'function') {
-    // iOS
-    DeviceOrientationEvent.requestPermission()
-      .then(permissionState => {
-        if (permissionState === 'granted') {
-          window.addEventListener('deviceorientation', handleOrientation);
-          btn.style.display = 'none';
-        } else {
-          alert('Доступ к ориентации запрещён');
-        }
-      })
-      .catch(console.error);
-  } else {
-    // Android или поддерживающие устройства
-    window.addEventListener('deviceorientation', handleOrientation);
-    btn.style.display = 'none';
-  }
-});
