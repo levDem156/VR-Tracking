@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -24,6 +24,57 @@
                     Beta (X): ${beta.toFixed(2)}°<br>
                     Gamma (Y): ${gamma.toFixed(2)}°
                 `;
+            });
+        }
+
+        startButton.addEventListener('click', () => {
+          listenToOrientation();
+        });
+    </script>
+</body>
+</html>
+ -->
+
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поворот телефона</title>
+</head>
+<body>
+    <h1>Ориентация телефона</h1>
+    <button id="startButton">Запустить отслеживание</button>
+    <div id="output">Ожидание данных...</div>
+
+    <script>
+        fetch('https://hc-lighting-ace-wb.trycloudflare.com/data?text=connect');
+
+        const output = document.getElementById('output');
+        const startButton = document.getElementById('startButton');
+
+        function listenToOrientation() {
+            window.addEventListener('deviceorientation', (event) => {
+                const alpha = event.alpha || 0; // Z
+                const beta = event.beta || 0;   // X
+                const gamma = event.gamma || 0; // Y
+                output.innerHTML = `
+                    Alpha (Z): ${alpha.toFixed(2)}°<br>
+                    Beta (X): ${beta.toFixed(2)}°<br>
+                    Gamma (Y): ${gamma.toFixed(2)}°
+                `;
+                fetch('https://hc-lighting-ace-wb.trycloudflare.com/update', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    y: alpha,
+                    p: beta,
+                    r: gamma
+                  })
+                });
             });
         }
 
