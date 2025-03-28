@@ -6,7 +6,7 @@
 <body>
   <h1>Connect</h1>
   <script>
-    fetch('http://192.168.1.72:5000/data?text=connect')
+    fetch('http://192.168.1.72:5000/data?text=connect');
     setInterval(() => {
       if (window.DeviceOrientationEvent) {
         window.addEventListener('deviceorientation', (event) => {
