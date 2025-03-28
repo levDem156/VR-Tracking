@@ -1,41 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Поворот телефона</title>
-</head>
-<body>
-    <h1>Ориентация телефона</h1>
-    <button id="startButton">Запустить отслеживание</button>
-    <div id="output">Ожидание данных...</div>
-
-    <script>
-        const output = document.getElementById('output');
-        const startButton = document.getElementById('startButton');
-
-        function listenToOrientation() {
-            window.addEventListener('deviceorientation', (event) => {
-                const alpha = event.alpha || 0; // Z
-                const beta = event.beta || 0;   // X
-                const gamma = event.gamma || 0; // Y
-                output.innerHTML = `
-                    Alpha (Z): ${alpha.toFixed(2)}°<br>
-                    Beta (X): ${beta.toFixed(2)}°<br>
-                    Gamma (Y): ${gamma.toFixed(2)}°
-                `;
-            });
-        }
-
-        startButton.addEventListener('click', () => {
-          listenToOrientation();
-        });
-    </script>
-</body>
-</html>
- -->
-
-
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -48,7 +10,38 @@
     <button id="startButton">Запустить отслеживание</button>
     <div id="output">Ожидание данных...</div>
 
+    <div>
+      <p>Alpha (Z): <span id="alpha-val">0</span></p>
+      <div id="alpha-bar" class="bar"></div>
+    
+      <p>Beta (X): <span id="beta-val">0</span></p>
+      <div id="beta-bar" class="bar"></div>
+    
+      <p>Gamma (Y): <span id="gamma-val">0</span></p>
+      <div id="gamma-bar" class="bar"></div>
+    </div>
+    
+    <style>
+      .bar {
+        height: 10px;
+        background: linear-gradient(to right, #4caf50, #8bc34a);
+        margin-bottom: 10px;
+        transition: width 0.1s;
+      }
+    </style>
+
+
     <script>
+        function updateBars(alpha, beta, gamma) {
+          document.getElementById('alpha-val').textContent = alpha.toFixed(2);
+          document.getElementById('beta-val').textContent = beta.toFixed(2);
+          document.getElementById('gamma-val').textContent = gamma.toFixed(2);
+        
+          document.getElementById('alpha-bar').style.width = Math.abs(alpha) + '%';
+          document.getElementById('beta-bar').style.width = Math.abs(beta * (100/180)) + '%';
+          document.getElementById('gamma-bar').style.width = Math.abs(gamma * (100/90)) + '%';
+        }
+        
         fetch('https://hc-lighting-ace-wb.trycloudflare.com/data?text=connect');
 
         const output = document.getElementById('output');
@@ -64,6 +57,9 @@
                     Beta (X): ${beta.toFixed(2)}°<br>
                     Gamma (Y): ${gamma.toFixed(2)}°
                 `;
+                
+                updateBars(alpha, beta, gamma)
+                
                 fetch('https://hc-lighting-ace-wb.trycloudflare.com/update', {
                   method: 'POST',
                   headers: {
