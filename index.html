@@ -7,9 +7,46 @@
 </head>
 <body>
     <h1>Ориентация телефона</h1>
-    <div id="orientation">Ожидание данных...</div>
-    <script src="script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
+    <button id="startButton">Запустить отслеживание</button>
+    <div id="output">Ожидание данных...</div>
+
+    <script>
+        const output = document.getElementById('output');
+        const startButton = document.getElementById('startButton');
+
+        function listenToOrientation() {
+            window.addEventListener('deviceorientation', (event) => {
+                const alpha = event.alpha || 0; // Z
+                const beta = event.beta || 0;   // X
+                const gamma = event.gamma || 0; // Y
+                output.innerHTML = `
+                    Alpha (Z): ${alpha.toFixed(2)}°<br>
+                    Beta (X): ${beta.toFixed(2)}°<br>
+                    Gamma (Y): ${gamma.toFixed(2)}°
+                `;
+            });
+        }
+
+        startButton.addEventListener('click', () => {
+            if (!window.DeviceOrientationEvent) {
+                alert("DeviceOrientation не поддерживается");
+                return;
+            }
+
+            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            listenToOrientation();
+                        } else {
+                            alert("Разрешение отклонено");
+                        }
+                    })
+                    .catch(err => alert("Ошибка: " + err));
+            } else {
+                listenToOrientation();
+            }
+        });
+    </script>
 </body>
 </html>
