@@ -1,36 +1,13 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <title>Ориентация телефона — 3D</title>
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: #111;
-      color: white;
-      font-family: sans-serif;
-    }
-    #request-permission {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      padding: 10px 20px;
-      background: #00bcd4;
-      border: none;
-      border-radius: 8px;
-      color: white;
-      font-weight: bold;
-      cursor: pointer;
-      z-index: 10;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поворот телефона</title>
 </head>
 <body>
-  <button id="request-permission">Разрешить доступ</button>
-
-  <!-- Подключаем Three.js из CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.157.0/build/three.min.js"></script>
-  <script src="script.js"></script>
+    <h1>Ориентация телефона</h1>
+    <div id="orientation">Ожидание данных...</div>
+    <script src="script.js"></script>
 </body>
 </html>
