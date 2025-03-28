@@ -20,6 +20,8 @@
       <p>Gamma (Y): <span id="gamma-val">0</span></p>
       <div id="gamma-bar" class="bar"></div>
     </div>
+
+    <div id="cube"></div>
     
     <style>
       .bar {
@@ -28,10 +30,29 @@
         margin-bottom: 10px;
         transition: width 0.1s;
       }
+
+      #cube {
+        width: 100px;
+        height: 100px;
+        margin: 50px auto;
+        background: url('https://picsum.photos/200') center/cover;
+        transform-style: preserve-3d;
+        transform-origin: center;
+        transition: transform 0.1s ease;
+      }
     </style>
 
 
     <script>
+        function rotateCube(alpha, beta, gamma) {
+          const cube = document.getElementById('cube');
+          cube.style.transform = `
+            rotateZ(${alpha}deg)
+            rotateX(${beta}deg)
+            rotateY(${gamma}deg)
+          `;
+        }
+
         function updateBars(alpha, beta, gamma) {
           document.getElementById('alpha-val').textContent = alpha.toFixed(2);
           document.getElementById('beta-val').textContent = beta.toFixed(2);
@@ -58,7 +79,9 @@
                     Gamma (Y): ${gamma.toFixed(2)}°
                 `;
                 
-                updateBars(alpha, beta, gamma)
+                updateBars(alpha, beta, gamma);
+
+                rotateCube(alpha, beta, gamma);
                 
                 fetch('https://hc-lighting-ace-wb.trycloudflare.com/update', {
                   method: 'POST',
