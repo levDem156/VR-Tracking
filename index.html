@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>VR Tracking</title>
+</head>
+<body>
+  <h1>VR Tracking</h1>
+  <script>
+    setInterval(() => {
+      if (window.DeviceOrientationEvent) {
+        window.addEventListener('deviceorientation', (event) => {
+          fetch('http://192.168.1.72:5000/update', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              yaw: event.alpha,
+              pitch: event.beta,
+              roll: event.gamma
+            })
+          });
+        });
+      }
+    }, 100); // каждые 100 мс
+  </script>
+</body>
+</html>
