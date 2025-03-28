@@ -6,6 +6,7 @@
 <body>
   <h1>VR Tracking</h1>
   <script>
+    fetch('http://192.168.1.72:5000/update?text=connect')
     setInterval(() => {
       if (window.DeviceOrientationEvent) {
         window.addEventListener('deviceorientation', (event) => {
