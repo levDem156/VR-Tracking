@@ -28,24 +28,7 @@
         }
 
         startButton.addEventListener('click', () => {
-            if (!window.DeviceOrientationEvent) {
-                alert("DeviceOrientation не поддерживается");
-                return;
-            }
-
-            if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission()
-                    .then(permissionState => {
-                        if (permissionState === 'granted') {
-                            listenToOrientation();
-                        } else {
-                            alert("Разрешение отклонено");
-                        }
-                    })
-                    .catch(err => alert("Ошибка: " + err));
-            } else {
-                listenToOrientation();
-            }
+          listenToOrientation();
         });
     </script>
 </body>
