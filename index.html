@@ -7,23 +7,21 @@
   <h1>Connect</h1>
   <script>
     fetch('http://192.168.1.72:5000/data?text=connect');
-    setInterval(() => {
-      if (window.DeviceOrientationEvent) {
-        window.addEventListener('deviceorientation', (event) => {
-          fetch('http://192.168.1.72:5000/update', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              yaw: event.alpha,
-              pitch: event.beta,
-              roll: event.gamma
-            })
-          });
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener('deviceorientation', (event) => {
+        fetch('http://192.168.1.72:5000/update', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            yaw: event.alpha,
+            pitch: event.beta,
+            roll: event.gamma
+          })
         });
-      }
-    }, 100); // каждые 100 мс
+      });
+    }
   </script>
 </body>
 </html>
