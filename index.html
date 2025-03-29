@@ -63,11 +63,14 @@
           document.getElementById('gamma-bar').style.width = Math.abs(gamma * (100/90)) + '%';
         }
         
-        fetch('https://hc-lighting-ace-wb.trycloudflare.com/data?text=connect', 
-            .then((data) => {
-                console.log(data);
-            });
-        );
+        fetch('https://hc-lighting-ace-wb.trycloudflare.com/data?text=connect')
+          .then((data) => {
+            console.log(data);
+          })
+          .catch((err) => {
+            console.error("Ошибка запроса:", err);
+          });
+
 
         const output = document.getElementById('output');
         const startButton = document.getElementById('startButton');
