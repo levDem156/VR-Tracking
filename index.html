@@ -7,6 +7,7 @@
 </head>
 <body>
     <h1>Ориентация телефона</h1>
+    <input type="text" id="myInput" placeholder="Введи пароль">
     <button id="startButton">Запустить отслеживание</button>
     <div id="output">Ожидание данных...</div>
 
@@ -62,16 +63,12 @@
           document.getElementById('beta-bar').style.width = Math.abs(beta * (100/180)) + '%';
           document.getElementById('gamma-bar').style.width = Math.abs(gamma * (100/90)) + '%';
         }
-        
-        fetch('https://legend-advocate-encountered-puerto.trycloudflare.com/data?text=connect')
-          .then(res => res.text())
-          .then(data => console.log(data));
 
 
         const output = document.getElementById('output');
         const startButton = document.getElementById('startButton');
 
-        function listenToOrientation() {
+        function listenToOrientation(password) {
             window.addEventListener('deviceorientation', (event) => {
                 const alpha = event.alpha || 0; // Z
                 const beta = event.beta || 0;   // X
@@ -94,14 +91,22 @@
                   body: JSON.stringify({
                     y: alpha,
                     p: beta,
-                    r: gamma
+                    r: gamma,
+                    ps: password
                   })
                 });
             });
         }
 
         startButton.addEventListener('click', () => {
-          listenToOrientation();
+          const inputField = document.getElementById("myInput");
+          password = inputField.value; // сохраняем в переменную
+            
+          fetch(`https://legend-advocate-encountered-puerto.trycloudflare.com/data?text=${password}`)
+              .then(res => res.text())
+              .then(data => console.log(data));
+            
+          listenToOrientation(password);
         });
     </script>
 </body>
