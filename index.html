@@ -64,12 +64,8 @@
         }
         
         fetch('https://legend-advocate-encountered-puerto.trycloudflare.com/data?text=connect')
-          .then((data) => {
-            console.log(data);
-          })
-          .catch((err) => {
-            console.error("Ошибка запроса:", err);
-          });
+          .then(res => res.text())
+          .then(data => console.log(data));
 
 
         const output = document.getElementById('output');
