@@ -83,7 +83,7 @@
 
                 rotateCube(alpha, beta, gamma);
                 
-                fetch('https://legend-advocate-encountered-puerto.trycloudflare.com/update', {
+                fetch('https://naples-regions-arcade-filters.trycloudflare.com/update', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -102,7 +102,7 @@
           const inputField = document.getElementById("myInput");
           password = inputField.value; // сохраняем в переменную
             
-          fetch(`https://legend-advocate-encountered-puerto.trycloudflare.com/data?text=${password}`)
+          fetch(`https://naples-regions-arcade-filters.trycloudflare.com/data?text=${password}`)
               .then(res => res.text())
               .then(data => console.log(data));
             
