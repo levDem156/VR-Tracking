@@ -21,7 +21,7 @@
         margin-bottom: 10px;
         transition: width 0.1s;
     }
-    form{
+    .form{
       display: flex;
       flex-direction: column;
       justify-content: space-around;
@@ -46,11 +46,11 @@
   </style>
 </head>
 <body>
-  <form>
+  <div class="form">
     <input type="text" id="myInput" placeholder="Введи пароль">
     <button id="startButton">Запустить отслеживание</button>
     <div id="output">Ожидание данных...</div>
-  </form>
+  </div>
 
   <div id="info">
     <div>Yaw: <span id="yaw">0</span>°</div>
