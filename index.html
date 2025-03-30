@@ -79,6 +79,10 @@
                 if (gamma <= 0){
                     gamma = 90 + (gamma + 91);
                 }
+
+                if (beta <= 0){
+                    beta = 180 + (beta + 181);
+                }
                 
                 output.innerHTML = `
                     Alpha (Z): ${alpha.toFixed(2)}°<br>
