@@ -71,35 +71,58 @@
         const startButton = document.getElementById('startButton');
 
         function listenToOrientation(password) {
+            let cumulativeAlpha = 0;
+            let cumulativeBeta = 0;
+            let cumulativeGamma = 0;
+            let prevAlpha = null;
+            let prevBeta = null;
+            let prevGamma = null;
+        
             window.addEventListener('deviceorientation', (event) => {
                 const alpha = event.alpha || 0; // Z
-                let beta = event.beta || 0;   // X
-                let gamma = event.gamma || 0; // Y
-
-                if (gamma <= 0){
-                    gamma = 90 + (gamma + 91);
+                const beta = event.beta || 0;   // X
+                const gamma = event.gamma || 0; // Y
+        
+                // Инициализация предыдущих значений при первом вызове
+                if (prevAlpha === null) {
+                    prevAlpha = alpha;
+                    prevBeta = beta;
+                    prevGamma = gamma;
                 }
-
-                if (beta <= 0){
-                    beta = 180 + (beta + 181);
-                }
-                
-                updateBars(alpha, beta, gamma);
-                rotateCube(alpha, beta, gamma);
+        
+                // Вычисляем разницу с учётом переходов через границы
+                cumulativeAlpha += normalizeAngleDiff(alpha - prevAlpha);
+                cumulativeBeta += normalizeAngleDiff(beta - prevBeta);
+                cumulativeGamma += normalizeAngleDiff(gamma - prevGamma);
+        
+                // Обновляем предыдущие значения
+                prevAlpha = alpha;
+                prevBeta = beta;
+                prevGamma = gamma;
+        
+                // Используем накопленные значения
+                updateBars(cumulativeAlpha, cumulativeBeta, cumulativeGamma);
+                rotateCube(cumulativeAlpha, cumulativeBeta, cumulativeGamma);
                 
                 fetch(`${server_url}/update`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    y: alpha,
-                    p: beta,
-                    r: gamma,
-                    ps: password
-                  })
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        y: cumulativeAlpha,
+                        p: cumulativeBeta,
+                        r: cumulativeGamma,
+                        ps: password
+                    })
                 });
             });
+        }
+
+        function normalizeAngleDiff(diff) {
+            if (diff > 180) return diff - 360;
+            if (diff < -180) return diff + 360;
+            return diff;
         }
 
         startButton.addEventListener('click', () => {
