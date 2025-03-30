@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Поворот телефона с Tree.js</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; color: white; }
+    #info {
+      position: absolute;
+      top: 10px; left: 10px;
+      background: rgba(0,0,0,0.5);
+      padding: 10px;
+      font-family: monospace;
+      border-radius: 8px;
+      z-index: 10;
+    }
+    .bar {
+        height: 10px;
+        background: linear-gradient(to right, #4caf50, #8bc34a);
+        margin-bottom: 10px;
+        transition: width 0.1s;
+    }
+  </style>
+</head>
+<body>
+    <input type="text" id="myInput" placeholder="Введи пароль">
+    <button id="startButton">Запустить отслеживание</button>
+    <div id="output">Ожидание данных...</div>
+
+  <div id="info">
+    <div>Yaw: <span id="yaw">0</span>°</div>
+    <div>Pitch: <span id="pitch">0</span>°</div>
+    <div>Roll: <span id="roll">0</span>°</div>
+  </div>
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+  <script src = "script.js"></script>
+</body>
+</html>
+
+
