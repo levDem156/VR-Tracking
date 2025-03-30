@@ -1,125 +1,141 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Поворот телефона</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Поворот телефона</title>
+  <style>
+    .bar {
+      height: 10px;
+      background: linear-gradient(to right, #4caf50, #8bc34a);
+      margin-bottom: 10px;
+      transition: width 0.1s;
+    }
+    #cube {
+      width: 100px;
+      height: 100px;
+      margin: 50px auto;
+      background: url('https://picsum.photos/200') center/cover;
+      transform-style: preserve-3d;
+      transform-origin: center;
+      transition: transform 0.1s ease;
+    }
+  </style>
 </head>
 <body>
-    <h1>Ориентация телефона</h1>
-    <input type="text" id="myInput" placeholder="Введи пароль">
-    <button id="startButton">Запустить отслеживание</button>
-    <div id="output">Ожидание данных...</div>
+  <h1>Ориентация телефона</h1>
+  <input type="text" id="myInput" placeholder="Введи пароль">
+  <button id="startButton">Запустить отслеживание</button>
+  <div id="output">Ожидание данных...</div>
 
-    <div>
-      <p>Alpha (Z): <span id="alpha-val">0</span></p>
-      <div id="alpha-bar" class="bar"></div>
-    
-      <p>Beta (X): <span id="beta-val">0</span></p>
-      <div id="beta-bar" class="bar"></div>
-    
-      <p>Gamma (Y): <span id="gamma-val">0</span></p>
-      <div id="gamma-bar" class="bar"></div>
-    </div>
+  <div>
+    <p>Alpha (Z): <span id="alpha-val">0</span></p>
+    <div id="alpha-bar" class="bar"></div>
+  
+    <p>Beta (X): <span id="beta-val">0</span></p>
+    <div id="beta-bar" class="bar"></div>
+  
+    <p>Gamma (Y): <span id="gamma-val">0</span></p>
+    <div id="gamma-bar" class="bar"></div>
+  </div>
 
-    <div id="cube"></div>
-    
-    <style>
-      .bar {
-        height: 10px;
-        background: linear-gradient(to right, #4caf50, #8bc34a);
-        margin-bottom: 10px;
-        transition: width 0.1s;
-      }
+  <div id="cube"></div>
+  
+  <script>
+    const server_url = "https://binary-refurbished-findings-determines.trycloudflare.com";
 
-      #cube {
-        width: 100px;
-        height: 100px;
-        margin: 50px auto;
-        background: url('https://picsum.photos/200') center/cover;
-        transform-style: preserve-3d;
-        transform-origin: center;
-        transition: transform 0.1s ease;
-      }
-    </style>
+    // Переменные для сглаживания
+    let lastAlpha = null, lastBeta = null, lastGamma = null;
+    const smoothingFactor = 0.1; // можно регулировать степень сглаживания
 
+    // Функция сглаживания с учетом цикличности углов
+    function smoothAngle(current, previous) {
+      if (previous === null) return current;
+      let diff = current - previous;
+      if (diff > 180) diff -= 360;
+      if (diff < -180) diff += 360;
+      return previous + smoothingFactor * diff;
+    }
 
-    <script>
-        const server_url = "https://binary-refurbished-findings-determines.trycloudflare.com";
+    function rotateCube(alpha, beta, gamma) {
+      const cube = document.getElementById('cube');
+      // Здесь добавлен сдвиг для beta (+50), можно скорректировать по желанию
+      cube.style.transform = `
+        rotateZ(${alpha}deg)
+        rotateX(${gamma}deg)
+        rotateY(${beta + 50}deg)
+      `;
+    }
 
-        function rotateCube(alpha, beta, gamma) {
-          const cube = document.getElementById('cube');
-          cube.style.transform = `
-            rotateZ(${alpha}deg)
-            rotateX(${gamma}deg)
-            rotateY(${beta+50}deg)
-          `;
-        }
+    function updateBars(alpha, beta, gamma) {
+      document.getElementById('alpha-val').textContent = alpha.toFixed(2);
+      document.getElementById('beta-val').textContent = beta.toFixed(2);
+      document.getElementById('gamma-val').textContent = gamma.toFixed(2);
 
-        function updateBars(alpha, beta, gamma) {
-          document.getElementById('alpha-val').textContent = alpha.toFixed(2);
-          document.getElementById('beta-val').textContent = beta.toFixed(2);
-          document.getElementById('gamma-val').textContent = gamma.toFixed(2);
+      document.getElementById('alpha-bar').style.width = (Math.abs(alpha) / 360 * 100) + '%';
+      document.getElementById('beta-bar').style.width = (Math.abs(beta) / 360 * 100) + '%';
+      document.getElementById('gamma-bar').style.width = (Math.abs(gamma) / 360 * 100) + '%';
+    }
 
-          document.getElementById('alpha-bar').style.width = (Math.abs(alpha) / 360 * 100) + '%';
-          document.getElementById('beta-bar').style.width = (Math.abs(beta) / 360 * 100) + '%';
-          document.getElementById('gamma-bar').style.width = (Math.abs(gamma) / 360 * 100) + '%';
-        }
+    const output = document.getElementById('output');
+    const startButton = document.getElementById('startButton');
 
+    function listenToOrientation(password) {
+      window.addEventListener('deviceorientation', (event) => {
+        // Получаем сырые значения
+        const rawAlpha = event.alpha || 0;  // [0, 360]
+        let rawBeta = event.beta || 0;        // обычно [-180, 180]
+        let rawGamma = event.gamma || 0;      // обычно [-90, 90]
 
+        // Пересчитываем beta: если отрицательное, переводим в диапазон [0, 360]
+        let mappedBeta = rawBeta < 0 ? rawBeta + 360 : rawBeta;
+        // Пересчитываем gamma: из диапазона [-90, 90] в [0, 180], затем умножаем на 2 для [0, 360]
+        let mappedGamma = (rawGamma + 90) * 2;
 
-        const output = document.getElementById('output');
-        const startButton = document.getElementById('startButton');
+        // Применяем сглаживание
+        const alpha = smoothAngle(rawAlpha, lastAlpha);
+        const beta = smoothAngle(mappedBeta, lastBeta);
+        const gamma = smoothAngle(mappedGamma, lastGamma);
 
-        function listenToOrientation(password) {
-            window.addEventListener('deviceorientation', (event) => {
-                const alpha = event.alpha || 0; // Z
-                let beta = event.beta || 0;   // X
-                let gamma = event.gamma || 0; // Y
+        // Обновляем предыдущие значения
+        lastAlpha = alpha;
+        lastBeta = beta;
+        lastGamma = gamma;
 
-                if (beta <= 0){
-                    beta = 180 + (beta + 180);
-                }
+        updateBars(alpha, beta, gamma);
+        rotateCube(alpha, beta, gamma);
 
-                if (gamma <= 0){
-                    gamma = 90 + (gamma + 90);
-                }
-                gamma *= 2;
-                
-                updateBars(alpha, beta, gamma);
-                rotateCube(alpha, beta, gamma);
-                
-                fetch(`${server_url}/update`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    y: alpha,
-                    p: beta,
-                    r: gamma,
-                    ps: password
-                  })
-                });
-            });
-        }
-
-        startButton.addEventListener('click', () => {
-          const inputField = document.getElementById("myInput");
-          let password = inputField.value; // сохраняем в переменную
-            
-          fetch(`${server_url}/data?text=${password}`)
-              .then(res => res.text())
-              .then(data => {
-                  console.log(data);
-                    if (data.includes("Password is correct")) {
-                        output.innerHTML = "✅ Доступ разрешён";
-                        listenToOrientation(password);
-                    } else {
-                        output.innerHTML = "❌ Неверный пароль";
-                    }
-              });
+        fetch(`${server_url}/update`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            y: alpha,
+            p: beta,
+            r: gamma,
+            ps: password
+          })
         });
-    </script>
+      });
+    }
+
+    startButton.addEventListener('click', () => {
+      const inputField = document.getElementById("myInput");
+      let password = inputField.value; // сохраняем пароль
+      
+      fetch(`${server_url}/data?text=${password}`)
+        .then(res => res.text())
+        .then(data => {
+          console.log(data);
+          if (data.includes("Password is correct")) {
+            output.innerHTML = "✅ Доступ разрешён";
+            listenToOrientation(password);
+          } else {
+            output.innerHTML = "❌ Неверный пароль";
+          }
+        });
+    });
+  </script>
 </body>
 </html>
