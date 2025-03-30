@@ -79,9 +79,9 @@
             let prevGamma = null;
         
             window.addEventListener('deviceorientation', (event) => {
-                const alpha = event.alpha || 0; // Z
-                const beta = event.beta || 0;   // X
-                const gamma = event.gamma || 0; // Y
+                const alpha = event.alpha || 0; // Z (0 to 360)
+                const beta = event.beta || 0;   // X (-180 to 180)
+                const gamma = event.gamma || 0; // Y (-90 to 90)
         
                 // Инициализация предыдущих значений при первом вызове
                 if (prevAlpha === null) {
@@ -91,9 +91,9 @@
                 }
         
                 // Вычисляем разницу с учётом переходов через границы
-                cumulativeAlpha += normalizeAngleDiff(alpha - prevAlpha);
-                cumulativeBeta += normalizeAngleDiff(beta - prevBeta);
-                cumulativeGamma += normalizeAngleDiff(gamma - prevGamma);
+                cumulativeAlpha += normalizeAngleDiff(alpha - prevAlpha, 360); // Для alpha (0-360)
+                cumulativeBeta += normalizeAngleDiff(beta - prevBeta, 360);   // Для beta (-180-180)
+                cumulativeGamma += normalizeAngleDiff(gamma - prevGamma, 180); // Для gamma (-90-90)
         
                 // Обновляем предыдущие значения
                 prevAlpha = alpha;
@@ -118,10 +118,12 @@
                 });
             });
         }
-
-        function normalizeAngleDiff(diff) {
-            if (diff > 180) return diff - 360;
-            if (diff < -180) return diff + 360;
+        
+        // Функция для нормализации разницы углов с учётом диапазона
+        function normalizeAngleDiff(diff, fullRange) {
+            const halfRange = fullRange / 2;
+            if (diff > halfRange) return diff - fullRange;
+            if (diff < -halfRange) return diff + fullRange;
             return diff;
         }
 
