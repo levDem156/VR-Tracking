@@ -45,6 +45,8 @@
 
 
     <script>
+        const server_url = "https://binary-refurbished-findings-determines.trycloudflare.com";
+
         function rotateCube(alpha, beta, gamma) {
           const cube = document.getElementById('cube');
           cube.style.transform = `
@@ -71,8 +73,13 @@
         function listenToOrientation(password) {
             window.addEventListener('deviceorientation', (event) => {
                 const alpha = event.alpha || 0; // Z
-                const beta = event.beta || 0;   // X
-                const gamma = event.gamma || 0; // Y
+                let beta = event.beta || 0;   // X
+                let gamma = event.gamma || 0; // Y
+
+                if (gamma <= 0){
+                    gamma = Math.abs(gamma) + 1;
+                }
+                
                 output.innerHTML = `
                     Alpha (Z): ${alpha.toFixed(2)}°<br>
                     Beta (X): ${beta.toFixed(2)}°<br>
@@ -83,7 +90,7 @@
 
                 rotateCube(alpha, beta, gamma);
                 
-                fetch('https://binary-refurbished-findings-determines.trycloudflare.com/update', {
+                fetch('${server_url}/update', {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
@@ -102,7 +109,7 @@
           const inputField = document.getElementById("myInput");
           let password = inputField.value; // сохраняем в переменную
             
-          fetch(`https://binary-refurbished-findings-determines.trycloudflare.com/data?text=${password}`)
+          fetch(`${server_url}/data?text=${password}`)
               .then(res => res.text())
               .then(data => {
                   console.log(data);
