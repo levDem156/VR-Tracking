@@ -87,7 +87,7 @@
                 updateBars(alpha, beta, gamma);
                 rotateCube(alpha, beta, gamma);
                 
-                fetch('${server_url}/update', {
+                fetch(`${server_url}/update`, {
                   method: 'POST',
                   headers: {
                     'Content-Type': 'application/json',
