@@ -76,12 +76,12 @@
                 let beta = event.beta || 0;   // X
                 let gamma = event.gamma || 0; // Y
 
-                if (beta <= 0){
-                    beta = 180 + (beta + 181);
-                }
-                if (gamma <= 0){
-                    gamma = 90 + (gamma + 91);
-                }
+                // if (beta <= 0){
+                //     beta = 180 + (beta + 181);
+                // }
+                // if (gamma <= 0){
+                //     gamma = 90 + (gamma + 91);
+                // }
                 
                 updateBars(alpha, beta, gamma);
                 rotateCube(alpha, beta, gamma);
