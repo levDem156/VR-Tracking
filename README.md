@@ -9,3 +9,6 @@ window.addEventListener('deviceorientation', (event) => {
 Работает только на телефоне и с протоколом https.
 
 Сервер запусил на rasPi, с flask. для api добавил https канал с помощью cloudflared.
+
+
+НО сейчас стало понятно, что просто deviceorientation слишком нестабильно работает, поэтому я подкрутил vr бибилиотеки типа thee.js с 
