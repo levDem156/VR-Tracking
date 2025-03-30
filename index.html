@@ -78,38 +78,19 @@
             let prevBeta = null;
             let prevGamma = null;
         
-            // История значений для сглаживания
-            const history = { alpha: [], beta: [], gamma: [] };
-            const maxHistory = 5; // Усредняем последние 5 значений
-        
             window.addEventListener('deviceorientation', (event) => {
-                const rawAlpha = event.alpha || 0; // Z (0 to 360)
-                const rawBeta = event.beta || 0;   // X (-180 to 180)
-                const rawGamma = event.gamma || 0; // Y (-90 to 90)
+                const alpha = event.alpha || 0; // Z (0 to 360)
+                const beta = event.beta || 0;   // X (-180 to 180)
+                const gamma = event.gamma || 0; // Y (-90 to 90)
         
-                // Инициализация при первом вызове
+                // Инициализация предыдущих значений при первом вызове
                 if (prevAlpha === null) {
-                    prevAlpha = rawAlpha;
-                    prevBeta = rawBeta;
-                    prevGamma = rawGamma;
+                    prevAlpha = alpha;
+                    prevBeta = beta;
+                    prevGamma = gamma;
                 }
         
-                // Добавляем значения в историю
-                history.alpha.push(rawAlpha);
-                history.beta.push(rawBeta);
-                history.gamma.push(rawGamma);
-                if (history.alpha.length > maxHistory) {
-                    history.alpha.shift();
-                    history.beta.shift();
-                    history.gamma.shift();
-                }
-        
-                // Вычисляем сглаженные значения
-                const alpha = averageWithNormalization(history.alpha, 360);
-                const beta = averageWithNormalization(history.beta, 360);
-                const gamma = averageWithNormalization(history.gamma, 180);
-        
-                // Вычисляем разницу с фильтрацией
+                // Вычисляем разницу с фильтрацией аномалий
                 cumulativeAlpha += normalizeAngleDiff(alpha, prevAlpha, 360);
                 cumulativeBeta += normalizeAngleDiff(beta, prevBeta, 360);
                 cumulativeGamma += normalizeAngleDiff(gamma, prevGamma, 180);
@@ -135,61 +116,31 @@
                         ps: password
                     })
                 });
-        
-                // Отладка
-                console.log({
-                    rawGamma,
-                    smoothedGamma: gamma,
-                    cumulativeGamma,
-                    gammaDiff: normalizeAngleDiff(gamma, prevGamma, 180)
-                });
             });
         }
         
-        // Функция для нормализации разницы углов с фильтрацией
+        // Функция для нормализации разницы углов с фильтрацией аномалий
         function normalizeAngleDiff(current, previous, fullRange) {
             let diff = current - previous;
             const halfRange = fullRange / 2;
-            const maxAllowedDiff = 30; // Жёсткий лимит на изменение (30° за шаг)
         
-            // Нормализация переходов через границы
+            // Порог для фильтрации аномалий (например, 90° для gamma, 180° для alpha/beta)
+            const maxAllowedDiff = halfRange * 0.8; // 80% от половины диапазона
+        
+            // Если разница слишком большая, считаем её переходом через границу
             if (diff > halfRange) {
                 diff -= fullRange;
             } else if (diff < -halfRange) {
                 diff += fullRange;
             }
         
-            // Фильтр: ограничиваем скорость изменения
+            // Фильтруем аномалии: если разница больше порога, игнорируем её
             if (Math.abs(diff) > maxAllowedDiff) {
-                console.warn(`Слишком большое изменение: ${diff} для диапазона ${fullRange}, ограничено до 0`);
-                return 0; // Игнорируем аномалию
+                console.warn(`Аномалия обнаружена: ${diff} для диапазона ${fullRange}, игнорируем`);
+                return 0; // Пропускаем скачок
             }
         
             return diff;
-        }
-        
-        // Функция для усреднения значений с учётом переходов через границы
-        function averageWithNormalization(values, fullRange) {
-            if (values.length === 0) return 0;
-        
-            // Преобразуем углы в синус и косинус для правильного усреднения
-            let sinSum = 0;
-            let cosSum = 0;
-            for (let value of values) {
-                const rad = (value * Math.PI) / 180;
-                sinSum += Math.sin(rad);
-                cosSum += Math.cos(rad);
-            }
-        
-            // Вычисляем средний угол
-            sinSum /= values.length;
-            cosSum /= values.length;
-            const avgRad = Math.atan2(sinSum, cosSum);
-            let avgDeg = (avgRad * 180) / Math.PI;
-        
-            // Приводим угол к положительному диапазону
-            if (avgDeg < 0) avgDeg += fullRange;
-            return avgDeg;
         }
 
         startButton.addEventListener('click', () => {
