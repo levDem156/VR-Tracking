@@ -11,4 +11,4 @@ window.addEventListener('deviceorientation', (event) => {
 Сервер запусил на rasPi, с flask. для api добавил https канал с помощью cloudflared.
 
 
-НО сейчас стало понятно, что просто deviceorientation слишком нестабильно работает, поэтому я подкрутил vr бибилиотеки типа thee.js с 
+НО сейчас стало понятно, что просто deviceorientation слишком нестабильно работает, поэтому я подкрутил vr бибилиотеки типа thee.js
