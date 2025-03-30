@@ -119,25 +119,25 @@
             });
         }
         
-        // Функция для нормализации разницы углов с фильтрацией аномалий
+        // Функция для нормализации разницы углов с усиленной фильтрацией
         function normalizeAngleDiff(current, previous, fullRange) {
             let diff = current - previous;
             const halfRange = fullRange / 2;
         
-            // Порог для фильтрации аномалий (например, 90° для gamma, 180° для alpha/beta)
-            const maxAllowedDiff = halfRange * 0.8; // 80% от половины диапазона
+            // Уменьшаем порог допустимых изменений для большей строгости
+            const maxAllowedDiff = halfRange * 0.5; // 50% от половины диапазона (45° для gamma)
         
-            // Если разница слишком большая, считаем её переходом через границу
+            // Нормализация переходов через границы
             if (diff > halfRange) {
                 diff -= fullRange;
             } else if (diff < -halfRange) {
                 diff += fullRange;
             }
         
-            // Фильтруем аномалии: если разница больше порога, игнорируем её
+            // Усиливаем фильтр: игнорируем изменения больше maxAllowedDiff
             if (Math.abs(diff) > maxAllowedDiff) {
-                console.warn(`Аномалия обнаружена: ${diff} для диапазона ${fullRange}, игнорируем`);
-                return 0; // Пропускаем скачок
+                console.warn(`Скачок слишком большой: ${diff} для диапазона ${fullRange}, игнорируем`);
+                return 0; // Пропускаем аномалию
             }
         
             return diff;
