@@ -43,6 +43,7 @@
       }
     </style>
 
+
     <script>
         const server_url = "https://binary-refurbished-findings-determines.trycloudflare.com";
 
@@ -50,8 +51,8 @@
           const cube = document.getElementById('cube');
           cube.style.transform = `
             rotateZ(${alpha}deg)
-            rotateX(${beta}deg)
-            rotateY(${gamma}deg)
+            rotateX(${gamma}deg)
+            rotateY(${beta}deg)
           `;
         }
 
@@ -60,106 +61,60 @@
           document.getElementById('beta-val').textContent = beta.toFixed(2);
           document.getElementById('gamma-val').textContent = gamma.toFixed(2);
         
-          document.getElementById('alpha-bar').style.width = Math.abs(alpha % 360) + '%';
+          document.getElementById('alpha-bar').style.width = Math.abs(alpha) + '%';
           document.getElementById('beta-bar').style.width = Math.abs(beta * (100/180)) + '%';
           document.getElementById('gamma-bar').style.width = Math.abs(gamma * (100/90)) + '%';
         }
+
 
         const output = document.getElementById('output');
         const startButton = document.getElementById('startButton');
 
         function listenToOrientation(password) {
-            let cumulativeAlpha = 0;
-            let cumulativeBeta = 0;
-            let cumulativeGamma = 0;
-            let prevAlpha = null;
-            let prevBeta = null;
-            let prevGamma = null;
-            let smoothedDiffAlpha = 0;
-            let smoothedDiffBeta = 0;
-            let smoothedDiffGamma = 0;
-            const smoothingFactor = 0.1; // Коэффициент сглаживания (0 < smoothingFactor < 1)
-
             window.addEventListener('deviceorientation', (event) => {
-                const alpha = event.alpha || 0; // Z (0 to 360)
-                const beta = event.beta || 0;   // X (-180 to 180)
-                const gamma = event.gamma || 0; // Y (-90 to 90)
+                const alpha = event.alpha || 0; // Z
+                let beta = event.beta || 0;   // X
+                let gamma = event.gamma || 0; // Y
 
-                // Инициализация предыдущих значений при первом вызове
-                if (prevAlpha === null) {
-                    prevAlpha = alpha;
-                    prevBeta = beta;
-                    prevGamma = gamma;
-                    return; // Пропускаем первую итерацию
+                if (beta <= 0){
+                    beta = 180 + (beta + 181);
                 }
-
-                // Вычисляем разницу с учетом переходов через границы
-                const diffAlpha = normalizeAngleDiff(alpha - prevAlpha, 360);
-                const diffBeta = normalizeAngleDiff(beta - prevBeta, 360);
-                const diffGamma = gamma - prevGamma; // Для Gamma не циклическая нормализация
-
-                // Сглаживаем разницы
-                smoothedDiffAlpha = smoothingFactor * diffAlpha + (1 - smoothingFactor) * smoothedDiffAlpha;
-                smoothedDiffBeta = smoothingFactor * diffBeta + (1 - smoothingFactor) * smoothedDiffBeta;
-                smoothedDiffGamma = smoothingFactor * diffGamma + (1 - smoothingFactor) * smoothedDiffGamma;
-
-                // Ограничиваем максимальную разницу для дополнительной стабильности
-                const maxDiff = 10; // Максимальная разница в градусах за один шаг
-                smoothedDiffAlpha = Math.max(-maxDiff, Math.min(maxDiff, smoothedDiffAlpha));
-                smoothedDiffBeta = Math.max(-maxDiff, Math.min(maxDiff, smoothedDiffBeta));
-                smoothedDiffGamma = Math.max(-maxDiff, Math.min(maxDiff, smoothedDiffGamma));
-
-                // Накапливаем сглаженные разницы
-                cumulativeAlpha += smoothedDiffAlpha;
-                cumulativeBeta += smoothedDiffBeta;
-                cumulativeGamma += smoothedDiffGamma;
-
-                // Обновляем предыдущие значения
-                prevAlpha = alpha;
-                prevBeta = beta;
-                prevGamma = gamma;
-
-                // Используем накопленные значения
-                updateBars(cumulativeAlpha, cumulativeBeta, cumulativeGamma);
-                rotateCube(cumulativeAlpha, cumulativeBeta, cumulativeGamma);
-
+                if (gamma <= 0){
+                    gamma = 90 + (gamma + 91);
+                }
+                
+                updateBars(alpha, beta, gamma);
+                rotateCube(alpha, beta, gamma);
+                
                 fetch(`${server_url}/update`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        y: cumulativeAlpha,
-                        p: cumulativeBeta,
-                        r: cumulativeGamma,
-                        ps: password
-                    })
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    y: alpha,
+                    p: beta,
+                    r: gamma,
+                    ps: password
+                  })
                 });
             });
         }
 
-        // Функция для нормализации разницы углов с учетом диапазона
-        function normalizeAngleDiff(diff, fullRange) {
-            const halfRange = fullRange / 2;
-            while (diff > halfRange) diff -= fullRange;
-            while (diff < -halfRange) diff += fullRange;
-            return diff;
-        }
-
         startButton.addEventListener('click', () => {
           const inputField = document.getElementById("myInput");
-          let password = inputField.value;
-
+          let password = inputField.value; // сохраняем в переменную
+            
           fetch(`${server_url}/data?text=${password}`)
               .then(res => res.text())
               .then(data => {
                   console.log(data);
-                  if (data.includes("Password is correct")) {
-                      output.innerHTML = "✅ Доступ разрешён";
-                      listenToOrientation(password);
-                  } else {
-                      output.innerHTML = "❌ Неверный пароль";
-                  }
+                    if (data.includes("Password is correct")) {
+                        output.innerHTML = "✅ Доступ разрешён";
+                        listenToOrientation(password);
+                    } else {
+                        output.innerHTML = "❌ Неверный пароль";
+                    }
               });
         });
     </script>
