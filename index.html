@@ -44,79 +44,94 @@
     </style>
 
 
-    <script>
-        const server_url = "https://binary-refurbished-findings-determines.trycloudflare.com";
+<script>
+    const server_url = "https://binary-refurbished-findings-determines.trycloudflare.com";
 
-        function rotateCube(alpha, beta, gamma) {
-          const cube = document.getElementById('cube');
-          cube.style.transform = `
-            rotateZ(${alpha}deg)
-            rotateX(${gamma}deg)
-            rotateY(${beta}deg)
-          `;
-        }
+    // Глобальные переменные для сглаженных значений
+    let currentAlpha = 0, currentBeta = 0, currentGamma = 0;
+    const smoothingFactor = 0.1; // Чем меньше значение, тем сильнее сглаживание
 
-        function updateBars(alpha, beta, gamma) {
-          document.getElementById('alpha-val').textContent = alpha.toFixed(2);
-          document.getElementById('beta-val').textContent = beta.toFixed(2);
-          document.getElementById('gamma-val').textContent = gamma.toFixed(2);
-        
-          document.getElementById('alpha-bar').style.width = Math.abs(alpha) + '%';
-          document.getElementById('beta-bar').style.width = Math.abs(beta * (100/180)) + '%';
-          document.getElementById('gamma-bar').style.width = Math.abs(gamma * (100/90)) + '%';
-        }
+    // Функция для сглаживания
+    function smoothValue(newValue, currentValue) {
+      return currentValue + (newValue - currentValue) * smoothingFactor;
+    }
 
+    function rotateCube(alpha, beta, gamma) {
+      const cube = document.getElementById('cube');
+      cube.style.transform = `
+        rotateZ(${alpha}deg)
+        rotateX(${gamma}deg)
+        rotateY(${beta}deg)
+      `;
+    }
 
-        const output = document.getElementById('output');
-        const startButton = document.getElementById('startButton');
+    function updateBars(alpha, beta, gamma) {
+      document.getElementById('alpha-val').textContent = alpha.toFixed(2);
+      document.getElementById('beta-val').textContent = beta.toFixed(2);
+      document.getElementById('gamma-val').textContent = gamma.toFixed(2);
 
-        function listenToOrientation(password) {
-            window.addEventListener('deviceorientation', (event) => {
-                const alpha = event.alpha || 0; // Z
-                let beta = event.beta || 0;   // X
-                let gamma = event.gamma || 0; // Y
+      document.getElementById('alpha-bar').style.width = Math.abs(alpha) + '%';
+      document.getElementById('beta-bar').style.width = Math.abs(beta * (100 / 180)) + '%';
+      document.getElementById('gamma-bar').style.width = Math.abs(gamma * (100 / 90)) + '%';
+    }
 
-                if (beta <= 0){
-                    beta = 180 + (beta + 181);
-                }
-                if (gamma <= 0){
-                    gamma = 90 + (gamma + 91);
-                }
-                
-                updateBars(alpha, beta, gamma);
-                rotateCube(alpha, beta, gamma);
-                
-                fetch(`${server_url}/update`, {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    y: alpha,
-                    p: beta,
-                    r: gamma,
-                    ps: password
-                  })
-                });
-            });
-        }
+    const output = document.getElementById('output');
+    const startButton = document.getElementById('startButton');
 
-        startButton.addEventListener('click', () => {
-          const inputField = document.getElementById("myInput");
-          let password = inputField.value; // сохраняем в переменную
+    function listenToOrientation(password) {
+        window.addEventListener('deviceorientation', (event) => {
+            let rawAlpha = event.alpha || 0; // Z
+            let rawBeta = event.beta || 0;   // X
+            let rawGamma = event.gamma || 0; // Y
+
+            // Приведение отрицательных значений к положительным, как в исходном коде
+            if (rawBeta <= 0) {
+                rawBeta = 180 + (rawBeta + 181);
+            }
+            if (rawGamma <= 0) {
+                rawGamma = 90 + (rawGamma + 91);
+            }
             
-          fetch(`${server_url}/data?text=${password}`)
-              .then(res => res.text())
-              .then(data => {
-                  console.log(data);
-                    if (data.includes("Password is correct")) {
-                        output.innerHTML = "✅ Доступ разрешён";
-                        listenToOrientation(password);
-                    } else {
-                        output.innerHTML = "❌ Неверный пароль";
-                    }
-              });
+            // Применяем сглаживание для каждого значения
+            currentAlpha = smoothValue(rawAlpha, currentAlpha);
+            currentBeta = smoothValue(rawBeta, currentBeta);
+            currentGamma = smoothValue(rawGamma, currentGamma);
+
+            updateBars(currentAlpha, currentBeta, currentGamma);
+            rotateCube(currentAlpha, currentBeta, currentGamma);
+            
+            fetch(`${server_url}/update`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                y: currentAlpha,
+                p: currentBeta,
+                r: currentGamma,
+                ps: password
+              })
+            });
         });
-    </script>
+    }
+
+    startButton.addEventListener('click', () => {
+      const inputField = document.getElementById("myInput");
+      let password = inputField.value;
+      
+      fetch(`${server_url}/data?text=${password}`)
+          .then(res => res.text())
+          .then(data => {
+              console.log(data);
+              if (data.includes("Password is correct")) {
+                  output.innerHTML = "✅ Доступ разрешён";
+                  listenToOrientation(password);
+              } else {
+                  output.innerHTML = "❌ Неверный пароль";
+              }
+          });
+    });
+</script>
+
 </body>
 </html>
