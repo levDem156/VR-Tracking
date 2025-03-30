@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Поворот телефона</title>
+  <title>Поворот телефона с фильтром Калмана</title>
   <style>
     .bar {
       height: 10px;
@@ -44,6 +44,42 @@
   <script>
     const server_url = "https://binary-refurbished-findings-determines.trycloudflare.com";
 
+    // Реализация простого фильтра Калмана
+    class KalmanFilter {
+      constructor(R = 0.01, Q = 3, A = 1, B = 0, C = 1) {
+        this.R = R; // дисперсия шума измерения
+        this.Q = Q; // дисперсия процесса
+        this.A = A; // коэффициент модели
+        this.B = B; // управляющий коэффициент
+        this.C = C; // коэффициент измерения
+        this.cov = NaN;
+        this.x = NaN;
+      }
+      
+      filter(z, u = 0) {
+        if (isNaN(this.x)) {
+          // Инициализация фильтра первыми значениями
+          this.x = z / this.C;
+          this.cov = 1 / this.C;
+        } else {
+          // Прогнозирование
+          const predX = (this.A * this.x) + (this.B * u);
+          const predCov = ((this.A * this.cov) * this.A) + this.Q;
+          // Вычисляем коэффициент Калмана
+          const K = predCov * this.C / ((this.C * predCov * this.C) + this.R);
+          // Обновление оценки
+          this.x = predX + K * (z - (this.C * predX));
+          this.cov = predCov - (K * this.C * predCov);
+        }
+        return this.x;
+      }
+    }
+    
+    // Создаем отдельные фильтры для каждой оси
+    const kalmanAlpha = new KalmanFilter(0.01, 3);
+    const kalmanBeta = new KalmanFilter(0.01, 3);
+    const kalmanGamma = new KalmanFilter(0.01, 3);
+
     function rotateCube(alpha, beta, gamma) {
       const cube = document.getElementById('cube');
       cube.style.transform = `
@@ -59,45 +95,35 @@
       document.getElementById('gamma-val').textContent = gamma.toFixed(2);
     
       document.getElementById('alpha-bar').style.width = Math.abs(alpha) + '%';
-      document.getElementById('beta-bar').style.width = Math.abs(beta * (100 / 180)) + '%';
-      document.getElementById('gamma-bar').style.width = Math.abs(gamma * (100 / 90)) + '%';
+      document.getElementById('beta-bar').style.width = Math.abs(beta * (100/180)) + '%';
+      document.getElementById('gamma-bar').style.width = Math.abs(gamma * (100/90)) + '%';
     }
 
     const output = document.getElementById('output');
     const startButton = document.getElementById('startButton');
 
     function listenToOrientation(password) {
-      let smoothedAlpha, smoothedBeta, smoothedGamma;
-      const smoothingFactor = 0.1; // Чем меньше значение, тем сильнее сглаживание
-      
       window.addEventListener('deviceorientation', (event) => {
         const rawAlpha = event.alpha || 0;
         const rawBeta  = event.beta  || 0;
         const rawGamma = event.gamma || 0;
-
-        if (smoothedAlpha === undefined) {
-          // Инициализация первыми значениями
-          smoothedAlpha = rawAlpha;
-          smoothedBeta  = rawBeta;
-          smoothedGamma = rawGamma;
-        } else {
-          // Экспоненциальное сглаживание
-          smoothedAlpha += smoothingFactor * (rawAlpha - smoothedAlpha);
-          smoothedBeta  += smoothingFactor * (rawBeta  - smoothedBeta);
-          smoothedGamma += smoothingFactor * (rawGamma - smoothedGamma);
-        }
-
-        updateBars(smoothedAlpha, smoothedBeta, smoothedGamma);
-        rotateCube(smoothedAlpha, smoothedBeta, smoothedGamma);
+        
+        // Применяем фильтр Калмана к каждому измерению
+        const filteredAlpha = kalmanAlpha.filter(rawAlpha);
+        const filteredBeta  = kalmanBeta.filter(rawBeta);
+        const filteredGamma = kalmanGamma.filter(rawGamma);
+        
+        updateBars(filteredAlpha, filteredBeta, filteredGamma);
+        rotateCube(filteredAlpha, filteredBeta, filteredGamma);
         
         // Отправка данных на сервер
         fetch(`${server_url}/update`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            y: smoothedAlpha,
-            p: smoothedBeta,
-            r: smoothedGamma,
+            y: filteredAlpha,
+            p: filteredBeta,
+            r: filteredGamma,
             ps: password
           })
         });
@@ -107,7 +133,7 @@
     startButton.addEventListener('click', () => {
       const inputField = document.getElementById("myInput");
       let password = inputField.value;
-        
+      
       fetch(`${server_url}/data?text=${password}`)
         .then(res => res.text())
         .then(data => {
