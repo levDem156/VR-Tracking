@@ -90,10 +90,10 @@
                     prevGamma = gamma;
                 }
         
-                // Вычисляем разницу с учётом переходов через границы
-                cumulativeAlpha += normalizeAngleDiff(alpha - prevAlpha, 360); // Для alpha (0-360)
-                cumulativeBeta += normalizeAngleDiff(beta - prevBeta, 360);   // Для beta (-180-180)
-                cumulativeGamma += normalizeAngleDiff(gamma - prevGamma, 180); // Для gamma (-90-90)
+                // Вычисляем разницу с фильтрацией аномалий
+                cumulativeAlpha += normalizeAngleDiff(alpha, prevAlpha, 360);
+                cumulativeBeta += normalizeAngleDiff(beta, prevBeta, 360);
+                cumulativeGamma += normalizeAngleDiff(gamma, prevGamma, 180);
         
                 // Обновляем предыдущие значения
                 prevAlpha = alpha;
@@ -119,11 +119,27 @@
             });
         }
         
-        // Функция для нормализации разницы углов с учётом диапазона
-        function normalizeAngleDiff(diff, fullRange) {
+        // Функция для нормализации разницы углов с фильтрацией аномалий
+        function normalizeAngleDiff(current, previous, fullRange) {
+            let diff = current - previous;
             const halfRange = fullRange / 2;
-            if (diff > halfRange) return diff - fullRange;
-            if (diff < -halfRange) return diff + fullRange;
+        
+            // Порог для фильтрации аномалий (например, 90° для gamma, 180° для alpha/beta)
+            const maxAllowedDiff = halfRange * 0.8; // 80% от половины диапазона
+        
+            // Если разница слишком большая, считаем её переходом через границу
+            if (diff > halfRange) {
+                diff -= fullRange;
+            } else if (diff < -halfRange) {
+                diff += fullRange;
+            }
+        
+            // Фильтруем аномалии: если разница больше порога, игнорируем её
+            if (Math.abs(diff) > maxAllowedDiff) {
+                console.warn(`Аномалия обнаружена: ${diff} для диапазона ${fullRange}, игнорируем`);
+                return 0; // Пропускаем скачок
+            }
+        
             return diff;
         }
 
