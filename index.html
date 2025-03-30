@@ -1,164 +1,125 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Поворот телефона</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Поворот телефона</title>
+  <style>
+    .bar {
+      height: 10px;
+      background: linear-gradient(to right, #4caf50, #8bc34a);
+      margin-bottom: 10px;
+      transition: width 0.1s;
+    }
+    #cube {
+      width: 100px;
+      height: 100px;
+      margin: 50px auto;
+      background: url('https://picsum.photos/200') center/cover;
+      transform-style: preserve-3d;
+      transform-origin: center;
+      transition: transform 0.1s ease;
+    }
+  </style>
 </head>
 <body>
-    <h1>Ориентация телефона</h1>
-    <input type="text" id="myInput" placeholder="Введи пароль">
-    <button id="startButton">Запустить отслеживание</button>
-    <div id="output">Ожидание данных...</div>
+  <h1>Ориентация телефона</h1>
+  <input type="text" id="myInput" placeholder="Введи пароль">
+  <button id="startButton">Запустить отслеживание</button>
+  <div id="output">Ожидание данных...</div>
 
-    <div>
-      <p>Alpha (Z): <span id="alpha-val">0</span></p>
-      <div id="alpha-bar" class="bar"></div>
+  <div>
+    <p>Alpha (Z): <span id="alpha-val">0</span></p>
+    <div id="alpha-bar" class="bar"></div>
+  
+    <p>Beta (X): <span id="beta-val">0</span></p>
+    <div id="beta-bar" class="bar"></div>
+  
+    <p>Gamma (Y): <span id="gamma-val">0</span></p>
+    <div id="gamma-bar" class="bar"></div>
+  </div>
+
+  <div id="cube"></div>
+  
+  <script>
+    const server_url = "https://binary-refurbished-findings-determines.trycloudflare.com";
+
+    function rotateCube(alpha, beta, gamma) {
+      const cube = document.getElementById('cube');
+      cube.style.transform = `
+        rotateZ(${beta}deg)
+        rotateX(${alpha}deg)
+        rotateY(${gamma + 50}deg)
+      `;
+    }
+
+    function updateBars(alpha, beta, gamma) {
+      document.getElementById('alpha-val').textContent = alpha.toFixed(2);
+      document.getElementById('beta-val').textContent = beta.toFixed(2);
+      document.getElementById('gamma-val').textContent = gamma.toFixed(2);
     
-      <p>Beta (X): <span id="beta-val">0</span></p>
-      <div id="beta-bar" class="bar"></div>
-    
-      <p>Gamma (Y): <span id="gamma-val">0</span></p>
-      <div id="gamma-bar" class="bar"></div>
-    </div>
+      document.getElementById('alpha-bar').style.width = Math.abs(alpha) + '%';
+      document.getElementById('beta-bar').style.width = Math.abs(beta * (100 / 180)) + '%';
+      document.getElementById('gamma-bar').style.width = Math.abs(gamma * (100 / 90)) + '%';
+    }
 
-    <div id="cube"></div>
-    
-    <style>
-      .bar {
-        height: 10px;
-        background: linear-gradient(to right, #4caf50, #8bc34a);
-        margin-bottom: 10px;
-        transition: width 0.1s;
-      }
+    const output = document.getElementById('output');
+    const startButton = document.getElementById('startButton');
 
-      #cube {
-        width: 100px;
-        height: 100px;
-        margin: 50px auto;
-        background: url('https://picsum.photos/200') center/cover;
-        transform-style: preserve-3d;
-        transform-origin: center;
-        transition: transform 0.1s ease;
-      }
-    </style>
+    function listenToOrientation(password) {
+      let smoothedAlpha, smoothedBeta, smoothedGamma;
+      const smoothingFactor = 0.1; // Чем меньше значение, тем сильнее сглаживание
+      
+      window.addEventListener('deviceorientation', (event) => {
+        const rawAlpha = event.alpha || 0;
+        const rawBeta  = event.beta  || 0;
+        const rawGamma = event.gamma || 0;
 
-
-    <script>
-        const server_url = "https://binary-refurbished-findings-determines.trycloudflare.com";
-
-        function rotateCube(alpha, beta, gamma) {
-          const cube = document.getElementById('cube');
-          cube.style.transform = `
-            rotateZ(${beta}deg)
-            rotateX(${alpha}deg)
-            rotateY(${gamma+50}deg)
-          `;
+        if (smoothedAlpha === undefined) {
+          // Инициализация первыми значениями
+          smoothedAlpha = rawAlpha;
+          smoothedBeta  = rawBeta;
+          smoothedGamma = rawGamma;
+        } else {
+          // Экспоненциальное сглаживание
+          smoothedAlpha += smoothingFactor * (rawAlpha - smoothedAlpha);
+          smoothedBeta  += smoothingFactor * (rawBeta  - smoothedBeta);
+          smoothedGamma += smoothingFactor * (rawGamma - smoothedGamma);
         }
 
-        function updateBars(alpha, beta, gamma) {
-          document.getElementById('alpha-val').textContent = alpha.toFixed(2);
-          document.getElementById('beta-val').textContent = beta.toFixed(2);
-          document.getElementById('gamma-val').textContent = gamma.toFixed(2);
+        updateBars(smoothedAlpha, smoothedBeta, smoothedGamma);
+        rotateCube(smoothedAlpha, smoothedBeta, smoothedGamma);
         
-          document.getElementById('alpha-bar').style.width = Math.abs(alpha) + '%';
-          document.getElementById('beta-bar').style.width = Math.abs(beta * (100/180)) + '%';
-          document.getElementById('gamma-bar').style.width = Math.abs(gamma * (100/90)) + '%';
-        }
-
-
-        const output = document.getElementById('output');
-        const startButton = document.getElementById('startButton');
-
-        function listenToOrientation(password) {
-            let cumulativeAlpha = 0;
-            let cumulativeBeta = 0;
-            let cumulativeGamma = 0;
-            let prevAlpha = null;
-            let prevBeta = null;
-            let prevGamma = null;
-        
-            window.addEventListener('deviceorientation', (event) => {
-                const alpha = event.alpha || 0; // Z (0 to 360)
-                const beta = event.beta || 0;   // X (-180 to 180)
-                const gamma = event.gamma || 0; // Y (-90 to 90)
-        
-                // Инициализация предыдущих значений при первом вызове
-                if (prevAlpha === null) {
-                    prevAlpha = alpha;
-                    prevBeta = beta;
-                    prevGamma = gamma;
-                }
-        
-                // Вычисляем разницу с фильтрацией аномалий
-                cumulativeAlpha += normalizeAngleDiff(alpha, prevAlpha, 360);
-                cumulativeBeta += normalizeAngleDiff(beta, prevBeta, 360);
-                cumulativeGamma += normalizeAngleDiff(gamma, prevGamma, 180);
-        
-                // Обновляем предыдущие значения
-                prevAlpha = alpha;
-                prevBeta = beta;
-                prevGamma = gamma;
-        
-                // Используем накопленные значения
-                updateBars(cumulativeAlpha, cumulativeBeta, cumulativeGamma);
-                rotateCube(cumulativeAlpha, cumulativeBeta, cumulativeGamma);
-                
-                fetch(`${server_url}/update`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        y: cumulativeAlpha,
-                        p: cumulativeBeta,
-                        r: cumulativeGamma,
-                        ps: password
-                    })
-                });
-            });
-        }
-        
-        // Функция для нормализации разницы углов с фильтрацией аномалий
-        function normalizeAngleDiff(current, previous, fullRange) {
-            let diff = current - previous;
-            const halfRange = fullRange / 2;
-        
-            // Порог для фильтрации аномалий (например, 90° для gamma, 180° для alpha/beta)
-            const maxAllowedDiff = halfRange * 0.8; // 80% от половины диапазона
-        
-            // Если разница слишком большая, считаем её переходом через границу
-            if (diff > halfRange) {
-                diff -= fullRange;
-            } else if (diff < -halfRange) {
-                diff += fullRange;
-            }
-        
-            // Фильтруем аномалии: если разница больше порога, игнорируем её
-            if (Math.abs(diff) > maxAllowedDiff) {
-                console.warn(`Аномалия обнаружена: ${diff} для диапазона ${fullRange}, игнорируем`);
-                return 0; // Пропускаем скачок
-            }
-        
-            return diff;
-        }
-
-        startButton.addEventListener('click', () => {
-          const inputField = document.getElementById("myInput");
-          let password = inputField.value; // сохраняем в переменную
-            
-          fetch(`${server_url}/data?text=${password}`)
-              .then(res => res.text())
-              .then(data => {
-                  console.log(data);
-                    if (data.includes("Password is correct")) {
-                        output.innerHTML = "✅ Доступ разрешён";
-                        listenToOrientation(password);
-                    } else {
-                        output.innerHTML = "❌ Неверный пароль";
-                    }
-              });
+        // Отправка данных на сервер
+        fetch(`${server_url}/update`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            y: smoothedAlpha,
+            p: smoothedBeta,
+            r: smoothedGamma,
+            ps: password
+          })
         });
-    </script>
+      });
+    }
+
+    startButton.addEventListener('click', () => {
+      const inputField = document.getElementById("myInput");
+      let password = inputField.value;
+        
+      fetch(`${server_url}/data?text=${password}`)
+        .then(res => res.text())
+        .then(data => {
+          console.log(data);
+          if (data.includes("Password is correct")) {
+            output.innerHTML = "✅ Доступ разрешён";
+            listenToOrientation(password);
+          } else {
+            output.innerHTML = "❌ Неверный пароль";
+          }
+        });
+    });
+  </script>
 </body>
 </html>
