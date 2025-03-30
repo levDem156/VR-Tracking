@@ -8,7 +8,7 @@
     body { margin: 0; overflow: hidden; background: #000; color: white; }
     #info {
       position: absolute;
-      top: 10px; left: 10px;
+      top: 100px; left: 10px;
       background: rgba(0,0,0,0.5);
       padding: 10px;
       font-family: monospace;
@@ -21,12 +21,36 @@
         margin-bottom: 10px;
         transition: width 0.1s;
     }
+    form{
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: start;
+      height: 40px;
+      width: 50%;
+    }
+    #myInput{
+      width: 90%;
+      margin: 1%;
+    }
+    #startButton{
+      width: 90%;
+      height: 80px;
+      margin: 1%;
+    }
+    #output{
+      width: 90%;
+      height: 80px;
+      margin: 2%;
+    }
   </style>
 </head>
 <body>
+  <form>
     <input type="text" id="myInput" placeholder="Введи пароль">
     <button id="startButton">Запустить отслеживание</button>
     <div id="output">Ожидание данных...</div>
+  </form>
 
   <div id="info">
     <div>Yaw: <span id="yaw">0</span>°</div>
