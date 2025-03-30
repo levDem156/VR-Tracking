@@ -1,124 +1,167 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Стабильная ориентация телефона с KalmanJS</title>
-  <style>
-    .bar {
-      height: 10px;
-      background: linear-gradient(to right, #4caf50, #8bc34a);
-      margin-bottom: 10px;
-      transition: width 0.1s;
-    }
-    #cube {
-      width: 100px;
-      height: 100px;
-      margin: 50px auto;
-      background: url('https://picsum.photos/200') center/cover;
-      transform-style: preserve-3d;
-      transform-origin: center;
-      transition: transform 0.1s ease;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поворот телефона</title>
 </head>
 <body>
-  <h1>Стабильная ориентация телефона</h1>
-  <input type="text" id="myInput" placeholder="Введи пароль">
-  <button id="startButton">Запустить отслеживание</button>
-  <div id="output">Ожидание данных...</div>
+    <h1>Ориентация телефона</h1>
+    <input type="text" id="myInput" placeholder="Введи пароль">
+    <button id="startButton">Запустить отслеживание</button>
+    <div id="output">Ожидание данных...</div>
 
-  <div>
-    <p>Alpha (Z): <span id="alpha-val">0</span></p>
-    <div id="alpha-bar" class="bar"></div>
-  
-    <p>Beta (X): <span id="beta-val">0</span></p>
-    <div id="beta-bar" class="bar"></div>
-  
-    <p>Gamma (Y): <span id="gamma-val">0</span></p>
-    <div id="gamma-bar" class="bar"></div>
-  </div>
-
-  <div id="cube"></div>
-
-  <!-- Подключаем библиотеку KalmanJS -->
-  <script src="https://cdn.jsdelivr.net/npm/kalmanjs@1.0.3/kalman.min.js"></script>
-  
-  <script>
-    const server_url = "https://binary-refurbished-findings-determines.trycloudflare.com";
-
-    // Создаем экземпляры фильтров Калмана для каждой оси
-    const kalmanAlpha = new KalmanFilter();
-    const kalmanBeta  = new KalmanFilter();
-    const kalmanGamma = new KalmanFilter();
-
-    function rotateCube(alpha, beta, gamma) {
-      const cube = document.getElementById('cube');
-      cube.style.transform = `
-        rotateZ(${beta}deg)
-        rotateX(${alpha}deg)
-        rotateY(${gamma + 50}deg)
-      `;
-    }
-
-    function updateBars(alpha, beta, gamma) {
-      document.getElementById('alpha-val').textContent = alpha.toFixed(2);
-      document.getElementById('beta-val').textContent = beta.toFixed(2);
-      document.getElementById('gamma-val').textContent = gamma.toFixed(2);
+    <div>
+      <p>Alpha (Z): <span id="alpha-val">0</span></p>
+      <div id="alpha-bar" class="bar"></div>
     
-      document.getElementById('alpha-bar').style.width = Math.abs(alpha) + '%';
-      document.getElementById('beta-bar').style.width = Math.abs(beta * (100 / 180)) + '%';
-      document.getElementById('gamma-bar').style.width = Math.abs(gamma * (100 / 90)) + '%';
-    }
+      <p>Beta (X): <span id="beta-val">0</span></p>
+      <div id="beta-bar" class="bar"></div>
+    
+      <p>Gamma (Y): <span id="gamma-val">0</span></p>
+      <div id="gamma-bar" class="bar"></div>
+    </div>
 
-    const output = document.getElementById('output');
-    const startButton = document.getElementById('startButton');
+    <div id="cube"></div>
+    
+    <style>
+      .bar {
+        height: 10px;
+        background: linear-gradient(to right, #4caf50, #8bc34a);
+        margin-bottom: 10px;
+        transition: width 0.1s;
+      }
 
-    function listenToOrientation(password) {
-      window.addEventListener('deviceorientation', (event) => {
-        // Получаем "сырые" значения с датчиков
-        const rawAlpha = event.alpha || 0;
-        const rawBeta  = event.beta  || 0;
-        const rawGamma = event.gamma || 0;
+      #cube {
+        width: 100px;
+        height: 100px;
+        margin: 50px auto;
+        background: url('https://picsum.photos/200') center/cover;
+        transform-style: preserve-3d;
+        transform-origin: center;
+        transition: transform 0.1s ease;
+      }
+    </style>
+
+    <script>
+        const server_url = "https://binary-refurbished-findings-determines.trycloudflare.com";
+
+        function rotateCube(alpha, beta, gamma) {
+          const cube = document.getElementById('cube');
+          cube.style.transform = `
+            rotateZ(${alpha}deg)
+            rotateX(${beta}deg)
+            rotateY(${gamma}deg)
+          `;
+        }
+
+        function updateBars(alpha, beta, gamma) {
+          document.getElementById('alpha-val').textContent = alpha.toFixed(2);
+          document.getElementById('beta-val').textContent = beta.toFixed(2);
+          document.getElementById('gamma-val').textContent = gamma.toFixed(2);
         
-        // Применяем фильтр Калмана для сглаживания данных
-        const filteredAlpha = kalmanAlpha.filter(rawAlpha);
-        const filteredBeta  = kalmanBeta.filter(rawBeta);
-        const filteredGamma = kalmanGamma.filter(rawGamma);
+          document.getElementById('alpha-bar').style.width = Math.abs(alpha % 360) + '%';
+          document.getElementById('beta-bar').style.width = Math.abs(beta * (100/180)) + '%';
+          document.getElementById('gamma-bar').style.width = Math.abs(gamma * (100/90)) + '%';
+        }
 
-        updateBars(filteredAlpha, filteredBeta, filteredGamma);
-        rotateCube(filteredAlpha, filteredBeta, filteredGamma);
-        
-        // Отправка данных на сервер
-        fetch(`${server_url}/update`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            y: filteredAlpha,
-            p: filteredBeta,
-            r: filteredGamma,
-            ps: password
-          })
-        });
-      });
-    }
+        const output = document.getElementById('output');
+        const startButton = document.getElementById('startButton');
 
-    startButton.addEventListener('click', () => {
-      const inputField = document.getElementById("myInput");
-      let password = inputField.value;
-      
-      fetch(`${server_url}/data?text=${password}`)
-        .then(res => res.text())
-        .then(data => {
-          console.log(data);
-          if (data.includes("Password is correct")) {
-            output.innerHTML = "✅ Доступ разрешён";
-            listenToOrientation(password);
-          } else {
-            output.innerHTML = "❌ Неверный пароль";
-          }
+        function listenToOrientation(password) {
+            let cumulativeAlpha = 0;
+            let cumulativeBeta = 0;
+            let cumulativeGamma = 0;
+            let prevAlpha = null;
+            let prevBeta = null;
+            let prevGamma = null;
+            let smoothedDiffAlpha = 0;
+            let smoothedDiffBeta = 0;
+            let smoothedDiffGamma = 0;
+            const smoothingFactor = 0.1; // Коэффициент сглаживания (0 < smoothingFactor < 1)
+
+            window.addEventListener('deviceorientation', (event) => {
+                const alpha = event.alpha || 0; // Z (0 to 360)
+                const beta = event.beta || 0;   // X (-180 to 180)
+                const gamma = event.gamma || 0; // Y (-90 to 90)
+
+                // Инициализация предыдущих значений при первом вызове
+                if (prevAlpha === null) {
+                    prevAlpha = alpha;
+                    prevBeta = beta;
+                    prevGamma = gamma;
+                    return; // Пропускаем первую итерацию
+                }
+
+                // Вычисляем разницу с учетом переходов через границы
+                const diffAlpha = normalizeAngleDiff(alpha - prevAlpha, 360);
+                const diffBeta = normalizeAngleDiff(beta - prevBeta, 360);
+                const diffGamma = gamma - prevGamma; // Для Gamma не циклическая нормализация
+
+                // Сглаживаем разницы
+                smoothedDiffAlpha = smoothingFactor * diffAlpha + (1 - smoothingFactor) * smoothedDiffAlpha;
+                smoothedDiffBeta = smoothingFactor * diffBeta + (1 - smoothingFactor) * smoothedDiffBeta;
+                smoothedDiffGamma = smoothingFactor * diffGamma + (1 - smoothingFactor) * smoothedDiffGamma;
+
+                // Ограничиваем максимальную разницу для дополнительной стабильности
+                const maxDiff = 10; // Максимальная разница в градусах за один шаг
+                smoothedDiffAlpha = Math.max(-maxDiff, Math.min(maxDiff, smoothedDiffAlpha));
+                smoothedDiffBeta = Math.max(-maxDiff, Math.min(maxDiff, smoothedDiffBeta));
+                smoothedDiffGamma = Math.max(-maxDiff, Math.min(maxDiff, smoothedDiffGamma));
+
+                // Накапливаем сглаженные разницы
+                cumulativeAlpha += smoothedDiffAlpha;
+                cumulativeBeta += smoothedDiffBeta;
+                cumulativeGamma += smoothedDiffGamma;
+
+                // Обновляем предыдущие значения
+                prevAlpha = alpha;
+                prevBeta = beta;
+                prevGamma = gamma;
+
+                // Используем накопленные значения
+                updateBars(cumulativeAlpha, cumulativeBeta, cumulativeGamma);
+                rotateCube(cumulativeAlpha, cumulativeBeta, cumulativeGamma);
+
+                fetch(`${server_url}/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        y: cumulativeAlpha,
+                        p: cumulativeBeta,
+                        r: cumulativeGamma,
+                        ps: password
+                    })
+                });
+            });
+        }
+
+        // Функция для нормализации разницы углов с учетом диапазона
+        function normalizeAngleDiff(diff, fullRange) {
+            const halfRange = fullRange / 2;
+            while (diff > halfRange) diff -= fullRange;
+            while (diff < -halfRange) diff += fullRange;
+            return diff;
+        }
+
+        startButton.addEventListener('click', () => {
+          const inputField = document.getElementById("myInput");
+          let password = inputField.value;
+
+          fetch(`${server_url}/data?text=${password}`)
+              .then(res => res.text())
+              .then(data => {
+                  console.log(data);
+                  if (data.includes("Password is correct")) {
+                      output.innerHTML = "✅ Доступ разрешён";
+                      listenToOrientation(password);
+                  } else {
+                      output.innerHTML = "❌ Неверный пароль";
+                  }
+              });
         });
-    });
-  </script>
+    </script>
 </body>
 </html>
