@@ -100,7 +100,7 @@
 
         startButton.addEventListener('click', () => {
           const inputField = document.getElementById("myInput");
-          password = inputField.value; // сохраняем в переменную
+          let password = inputField.value; // сохраняем в переменную
             
           fetch(`https://fitted-populations-calcium-surrey.trycloudflare.com/data?text=${password}`)
               .then(res => res.text())
@@ -162,6 +162,7 @@
       }
     </style>
 
+    <script src="https://unpkg.com/fulltilt"></script>
 
     <script>
         function rotateCube(alpha, beta, gamma) {
@@ -224,11 +225,20 @@
 
         startButton.addEventListener('click', () => {
           const inputField = document.getElementById("myInput");
-          password = inputField.value; // сохраняем в переменную
+          let password = inputField.value; // сохраняем в переменную
             
           fetch(`https://fitted-populations-calcium-surrey.trycloudflare.com/data?text=${password}`)
               .then(res => res.text())
-              .then(data => console.log(data));
+              .then(data => {
+                  console.log(data);
+                    if (data.includes("Password is correct")) {
+                        output.innerHTML = "✅ Доступ разрешён";
+                        listenToOrientation(password);
+                    } else {
+                        output.innerHTML = "❌ Неверный пароль";
+                    }
+              });
+                
             
           listenToOrientation(password);
         });
