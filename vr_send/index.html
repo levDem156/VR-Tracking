@@ -2,46 +2,66 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Поворот телефона с Tree.js</title>
+  <title>Поворот телефона с Three.js</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { margin: 0; overflow: hidden; background: #000; color: white; }
-    #info {
+    /* Общие стили для body и canvas */
+    body { 
+      margin: 0; 
+      overflow: hidden; 
+      background: #000; 
+      color: white; 
+      font-family: sans-serif;
+    }
+    /* Холст Three.js всегда на заднем плане */
+    canvas { 
+      display: block; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      z-index: 0;
+    }
+    /* Блок с формой – адаптивный и фиксирован вверху */
+    .form {
       position: absolute;
-      top: 100px; left: 10px;
-      background: rgba(0,0,0,0.5);
+      top: 10px;
+      left: 10px;
+      width: calc(100% - 20px);
+      max-width: 500px;
       padding: 10px;
-      font-family: monospace;
+      background: rgba(0, 0, 0, 0.5);
       border-radius: 8px;
-      z-index: 10;
-    }
-    .bar {
-        height: 10px;
-        background: linear-gradient(to right, #4caf50, #8bc34a);
-        margin-bottom: 10px;
-        transition: width 0.1s;
-    }
-    .form{
       display: flex;
       flex-direction: column;
-      justify-content: space-around;
-      align-items: start;
+      gap: 10px;
+      z-index: 10;
+      box-sizing: border-box;
+    }
+    /* Стили для полей ввода и кнопок */
+    #myInput, #startButton, #output {
+      width: 100%;
+      box-sizing: border-box;
+    }
+    #startButton {
+      height: 50px;
+      font-size: 16px;
+    }
+    #output {
       height: 40px;
-      width: 50%;
+      font-size: 14px;
+      line-height: 40px;
+      text-align: center;
     }
-    #myInput{
-      width: 90%;
-      margin: 1%;
-    }
-    #startButton{
-      width: 90%;
-      height: 80px;
-      margin: 1%;
-    }
-    #output{
-      width: 90%;
-      height: 80px;
-      margin: 2%;
+    /* Блок с информацией по углам */
+    #info {
+      position: absolute;
+      top: 150px;
+      left: 10px;
+      background: rgba(0, 0, 0, 0.5);
+      padding: 10px;
+      border-radius: 8px;
+      z-index: 10;
+      box-sizing: border-box;
     }
   </style>
 </head>
@@ -58,11 +78,8 @@
     <div>Roll: <span id="roll">0</span>°</div>
   </div>
 
-  
-
+  <!-- Подключение Three.js и скрипта -->
   <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-  <script src = "script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
-
-
