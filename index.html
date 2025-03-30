@@ -84,14 +84,7 @@
                     beta = 180 + (beta + 181);
                 }
                 
-                output.innerHTML = `
-                    Alpha (Z): ${alpha.toFixed(2)}°<br>
-                    Beta (X): ${beta.toFixed(2)}°<br>
-                    Gamma (Y): ${gamma.toFixed(2)}°
-                `;
-                
                 updateBars(alpha, beta, gamma);
-
                 rotateCube(alpha, beta, gamma);
                 
                 fetch('${server_url}/update', {
