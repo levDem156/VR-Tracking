@@ -12,3 +12,5 @@ window.addEventListener('deviceorientation', (event) => {
 
 
 НО сейчас стало понятно, что просто deviceorientation слишком нестабильно работает, поэтому я подкрутил vr бибилиотеки типа thee.js
+
+Основная директория с проектом vr_send, в vr_tracking находяться предыдущие версии.
