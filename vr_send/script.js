@@ -49,7 +49,7 @@ window.addEventListener('resize', () => {
 });
 
 // Сервер и элементы управления
-const server_url = "https://arbitrary-bb-franchise-concentrations.trycloudflare.com";
+const server_url = "https://operates-audience-ya-planes.trycloudflare.com";
 const output = document.getElementById('output');
 const startButton = document.getElementById('startButton');
 
