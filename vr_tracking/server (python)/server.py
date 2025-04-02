@@ -15,7 +15,7 @@ orientation_data = {
     'r': 0
 }
 
-ps_true = "boom154"
+ps_true = ""
 
 app = Flask(__name__)
 CORS(app)
