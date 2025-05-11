@@ -49,7 +49,7 @@ window.addEventListener('resize', () => {
 });
 
 // Сервер и элементы управления
-const server_url = "https://byte-wing-meaningful-fails.trycloudflare.com";
+const server_url = "https://personals-quantity-queue-connections.trycloudflare.com";
 const output = document.getElementById('output');
 const startButton = document.getElementById('startButton');
 
