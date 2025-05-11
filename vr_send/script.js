@@ -49,7 +49,7 @@ window.addEventListener('resize', () => {
 });
 
 // Сервер и элементы управления
-const server_url = "https://cyan-states-say.loca.lt";
+const server_url = "http://rnzbh-91-192-170-127.a.free.pinggy.link";
 const output = document.getElementById('output');
 const startButton = document.getElementById('startButton');
 
