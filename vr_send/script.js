@@ -49,7 +49,7 @@ window.addEventListener('resize', () => {
 });
 
 // Сервер и элементы управления
-const server_url = "https://olive-eyes-sip.loca.lt";
+const server_url = "https://cyan-states-say.loca.lt";
 const output = document.getElementById('output');
 const startButton = document.getElementById('startButton');
 
